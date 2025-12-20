@@ -2,7 +2,7 @@
 Algoritmo de Desencriptación AES-128
 
 
-Para correr el programa ponen:
+Para correr el programa ponen en la terminal donde esta el main.s:
 
 make archivo=main.s
 make run
