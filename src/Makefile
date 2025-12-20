@@ -60,4 +60,4 @@ debug: all
 .PHONY: all clean debug
 
 run:
-	LD_LIBRARY_PATH=/usr/aarch64-linux-gnu/lib qemu-aarch64 ./$(BIN_AS)/hola_asm
+	LD_LIBRARY_PATH=/usr/aarch64-linux-gnu/lib qemu-aarch64 ./$(BIN_AS)/main_asm
