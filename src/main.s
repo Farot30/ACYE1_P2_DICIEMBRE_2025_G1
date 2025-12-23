@@ -2,7 +2,7 @@
 
 .section .data
     // ========================================
-    // Clave de prueba (ejemplo del estándar FIPS-197)
+    // Clave de prueba
     // ========================================
     test_key: .byte 0x54, 0x68, 0x61, 0x74
               .byte 0x73, 0x20, 0x6D, 0x79
@@ -14,10 +14,7 @@
     // 44 palabras × 4 bytes = 176 bytes
     // ========================================
     expanded_keys: .skip 176
-    
-    // ========================================
-    // Mensajes para la salida
-    // ========================================
+
     msg_title: .asciz "\n=== AES-128 KEY EXPANSION TEST ===\n\n"
     msg_original: .asciz "Clave Original (128 bits):\n"
     msg_expanded: .asciz "\nClaves Expandidas (44 palabras):\n"
