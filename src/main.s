@@ -568,6 +568,10 @@ print_hex_line:
     mov x20, x1
     mov x21, #0
     
+    // Imprimir corchete de apertura
+    adr x0, msg_open_bracket
+    bl print_string
+    
 .Lhex_line_loop:
     cmp x21, x20
     bge .Lhex_line_done
@@ -582,6 +586,10 @@ print_hex_line:
     b .Lhex_line_loop
     
 .Lhex_line_done:
+    // Imprimir corchete de cierre
+    adr x0, msg_close_bracket_space
+    bl print_string
+    
     adr x0, newline
     bl print_string
     
