@@ -15,7 +15,7 @@ OBJ_DIR = obj
 $(shell mkdir -p $(BIN_AS) $(OBJ_DIR))
 
 # Archivos adicionales
-ADDITIONAL_SOURCES = itoa.s constantes.s key_expansion.s
+ADDITIONAL_SOURCES = itoa.s constantes.s key_expansion.s inv_shift_rows.s inv_sub_bytes.s add_round_key.s inv_mix_columns.s
 ADDITIONAL_OBJECTS = $(patsubst %.s, $(OBJ_DIR)/%.o, $(ADDITIONAL_SOURCES))
 
 # Generación de comandos de compilación
