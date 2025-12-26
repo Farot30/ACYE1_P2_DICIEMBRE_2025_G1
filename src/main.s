@@ -21,12 +21,7 @@
               .byte 0x73, 0x20, 0x6D, 0x79
               .byte 0x20, 0x4B, 0x75, 0x6E
               .byte 0x67, 0x20, 0x46, 0x75
-    
-    // Expected Plaintext: "Two One Nine Two" = 54776F20 4F6E6520 4E696E65 2054776F
-    expected_plain: .byte 0x54, 0x77, 0x6F, 0x20
-                    .byte 0x4F, 0x6E, 0x65, 0x20
-                    .byte 0x4E, 0x69, 0x6E, 0x65
-                    .byte 0x20, 0x54, 0x77, 0x6F
+
     
     expanded_keys: .skip 176
     work_state: .skip 16
@@ -60,25 +55,13 @@
     msg_after_imc: .asciz "  [IMC]       "
     
     msg_round_key_used: .asciz "  [CLAVE]     "
-    
-   // msg_column: .asciz "    Columna "
-   // msg_before_imc: .asciz ": ["
-   // msg_after_imc_col: .asciz "] -> ["
-   // msg_close_bracket: .asciz "]\n"
+
     
     msg_result: .asciz "\n[RESULTADO FINAL]\n"
     msg_decrypted: .asciz "  Descifrado: "
-    msg_expected: .asciz "  Esperado:   "
     msg_ascii_out: .asciz "  ASCII:      \""
     msg_quote: .asciz "\"\n"
-    
-    msg_success: .asciz "\n✓✓✓ ¡DESENCRIPTACIÓN EXITOSA! ✓✓✓\n"
-    msg_error: .asciz "\n✗✗✗ ERROR: El resultado NO coincide ✗✗✗\n"
-    
-    msg_byte_diff: .asciz "  Diferencias encontradas:\n"
-    msg_pos: .asciz "    Pos "
-    msg_expected_byte: .asciz ": esperado=0x"
-    msg_got_byte: .asciz ", obtenido=0x"
+
 
     msg_open_bracket: .asciz "["
     msg_close_bracket_space: .asciz "] "
@@ -301,38 +284,19 @@ debug_imc_before:
     cmp x26, #4
     bge debug_imc_apply
     
-    //adr x0, msg_column
-    //bl print_string
-    //mov x0, x26
-    //bl print_number
-    //adr x0, msg_before_imc
-    //bl print_string
-    
     // En column-major: columna C = bytes[C*4, C*4+1, C*4+2, C*4+3]
     adr x25, work_state
     lsl x22, x26, #2          // x22 = C * 4
     ldrb w0, [x25, x22]
-    //bl print_byte_hex
-    //adr x0, space
-    //bl print_string
     
     add x22, x22, #1
     ldrb w0, [x25, x22]
-    //bl print_byte_hex
-    //adr x0, space
-    //bl print_string
     
     add x22, x22, #1
     ldrb w0, [x25, x22]
-    //bl print_byte_hex
-    //adr x0, space
-    //bl print_string
     
     add x22, x22, #1
     ldrb w0, [x25, x22]
-    //bl print_byte_hex
-   // adr x0, msg_close_bracket
-   // bl print_string
     
     add x26, x26, #1
     b debug_imc_before
@@ -362,38 +326,19 @@ debug_imc_apply:
 debug_imc_after:
     cmp x26, #4
     bge debug_imc_complete
-    
-    //adr x0, msg_column
-    //bl print_string
-    //mov x0, x26
-    //bl print_number
-    //adr x0, msg_after_imc_col
-    //bl print_string
-    
+
     adr x25, work_state
     lsl x22, x26, #2          // x22 = C * 4
     ldrb w0, [x25, x22]
-    //bl print_byte_hex
-    //adr x0, space
-    //bl print_string
     
     add x22, x22, #1
     ldrb w0, [x25, x22]
-    //bl print_byte_hex
-    //adr x0, space
-    //bl print_string
     
     add x22, x22, #1
     ldrb w0, [x25, x22]
-    //bl print_byte_hex
-    //adr x0, space
-    //bl print_string
     
     add x22, x22, #1
     ldrb w0, [x25, x22]
-    //bl print_byte_hex
-    //adr x0, msg_close_bracket
-    //bl print_string
     
     add x26, x26, #1
     b debug_imc_after
@@ -468,12 +413,6 @@ final_round:
     mov x1, #16
     bl print_hex_line
     
-    adr x0, msg_expected
-    bl print_string
-    adr x0, expected_plain
-    mov x1, #16
-    bl print_hex_line
-    
     adr x0, msg_ascii_out
     bl print_string
     adr x0, work_state
@@ -482,69 +421,8 @@ final_round:
     bl print_string
 
     // ========================================
-    // VERIFICAR
+    // FIN DEL PROGRAMA
     // ========================================
-    adr x19, work_state
-    adr x20, expected_plain
-    mov x21, #0
-    mov x25, #0
-    
-verify_loop:
-    cmp x21, #16
-    bge check_result
-    
-    ldrb w22, [x19, x21]
-    ldrb w23, [x20, x21]
-    cmp w22, w23
-    beq verify_next
-    
-    cmp x25, #0
-    bne print_diff
-    
-    adr x0, msg_byte_diff
-    bl print_string
-    
-print_diff:
-    adr x0, msg_pos
-    bl print_string
-    
-    stp x21, x26, [sp, #-16]!
-    mov w0, w21
-    bl print_number
-    ldp x21, x26, [sp], #16
-    
-    adr x0, msg_expected_byte
-    bl print_string
-    mov w0, w23
-    bl print_byte_hex
-    
-    adr x0, msg_got_byte
-    bl print_string
-    mov w0, w22
-    bl print_byte_hex
-    
-    adr x0, newline
-    bl print_string
-    
-    add x25, x25, #1
-    
-verify_next:
-    add x21, x21, #1
-    b verify_loop
-
-check_result:
-    cmp x25, #0
-    bne verify_failed
-    
-verify_success:
-    adr x0, msg_success
-    bl print_string
-    b program_end
-
-verify_failed:
-    adr x0, msg_error
-    bl print_string
-
 program_end:
     adr x0, msg_separator
     bl print_string
