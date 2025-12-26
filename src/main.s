@@ -79,6 +79,9 @@
     msg_pos: .asciz "    Pos "
     msg_expected_byte: .asciz ": esperado=0x"
     msg_got_byte: .asciz ", obtenido=0x"
+
+    msg_open_bracket: .asciz "["
+    msg_close_bracket_space: .asciz "] "
     
     newline: .asciz "\n"
     space: .asciz " "
@@ -147,13 +150,21 @@ print_expanded_keys_loop:
     
     adr x0, msg_colon
     bl print_string
+
+    adr x0, msg_open_bracket        
+    bl print_string
     
     mov x20, #16
     mul x20, x19, x20
     adr x0, expanded_keys
     add x0, x0, x20
     mov x1, #16
-    bl print_hex_line
+    bl print_hex_line_no_newline    
+    
+   adr x0, msg_close_bracket_space
+    bl print_string
+    adr x0, newline
+    bl print_string
     
     add x19, x19, #1
     b print_expanded_keys_loop
@@ -694,6 +705,8 @@ print_number:
     sub x1, x1, #1
     mov x2, x20
     sub x2, x2, #1
+    mov x20, x1        // Guardar posición del último dígito
+    add x20, x20, #1   // Apuntar después del último dígito
 .Lreverse_loop:
     add x2, x2, #1
     cmp x2, x1
@@ -737,6 +750,35 @@ print_string:
     mov x8, #64
     svc #0
     
+    ldp x19, x20, [sp], #16
+    ldp x29, x30, [sp], #16
+    ret
+
+// Imprime hex en una línea sin newline al final
+print_hex_line_no_newline:
+    stp x29, x30, [sp, #-16]!
+    stp x19, x20, [sp, #-16]!
+    stp x21, x22, [sp, #-16]!
+    
+    mov x19, x0
+    mov x20, x1
+    mov x21, #0
+    
+.Lhex_no_nl_loop:
+    cmp x21, x20
+    bge .Lhex_no_nl_done
+    
+    ldrb w0, [x19, x21]
+    bl print_byte_hex
+    
+    adr x0, space
+    bl print_string
+    
+    add x21, x21, #1
+    b .Lhex_no_nl_loop
+    
+.Lhex_no_nl_done:
+    ldp x21, x22, [sp], #16
     ldp x19, x20, [sp], #16
     ldp x29, x30, [sp], #16
     ret
