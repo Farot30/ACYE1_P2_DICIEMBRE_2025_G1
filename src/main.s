@@ -35,7 +35,7 @@
     // MENSAJES
     // ========================================
     msg_title: .asciz "\n╔═══════════════════════════════════════════════════════╗\n"
-    msg_title2: .asciz "║   DESENCRIPTACIÓN AES-128 - MODO DEPURACIÓN          ║\n"
+    msg_title2: .asciz "║   DESENCRIPTACIÓN AES-128 - MODO DEPURACIÓN           ║\n"
     msg_title3: .asciz "╚═══════════════════════════════════════════════════════╝\n\n"
     
     msg_separator: .asciz "========================================================\n"
@@ -61,10 +61,10 @@
     
     msg_round_key_used: .asciz "  [CLAVE]     "
     
-    msg_column: .asciz "    Columna "
-    msg_before_imc: .asciz ": ["
-    msg_after_imc_col: .asciz "] -> ["
-    msg_close_bracket: .asciz "]\n"
+   // msg_column: .asciz "    Columna "
+   // msg_before_imc: .asciz ": ["
+   // msg_after_imc_col: .asciz "] -> ["
+   // msg_close_bracket: .asciz "]\n"
     
     msg_result: .asciz "\n[RESULTADO FINAL]\n"
     msg_decrypted: .asciz "  Descifrado: "
@@ -290,38 +290,38 @@ debug_imc_before:
     cmp x26, #4
     bge debug_imc_apply
     
-    adr x0, msg_column
-    bl print_string
-    mov x0, x26
-    bl print_number
-    adr x0, msg_before_imc
-    bl print_string
+    //adr x0, msg_column
+    //bl print_string
+    //mov x0, x26
+    //bl print_number
+    //adr x0, msg_before_imc
+    //bl print_string
     
     // En column-major: columna C = bytes[C*4, C*4+1, C*4+2, C*4+3]
     adr x25, work_state
     lsl x22, x26, #2          // x22 = C * 4
     ldrb w0, [x25, x22]
-    bl print_byte_hex
-    adr x0, space
-    bl print_string
+    //bl print_byte_hex
+    //adr x0, space
+    //bl print_string
     
     add x22, x22, #1
     ldrb w0, [x25, x22]
-    bl print_byte_hex
-    adr x0, space
-    bl print_string
+    //bl print_byte_hex
+    //adr x0, space
+    //bl print_string
     
     add x22, x22, #1
     ldrb w0, [x25, x22]
-    bl print_byte_hex
-    adr x0, space
-    bl print_string
+    //bl print_byte_hex
+    //adr x0, space
+    //bl print_string
     
     add x22, x22, #1
     ldrb w0, [x25, x22]
-    bl print_byte_hex
-    adr x0, msg_close_bracket
-    bl print_string
+    //bl print_byte_hex
+   // adr x0, msg_close_bracket
+   // bl print_string
     
     add x26, x26, #1
     b debug_imc_before
@@ -352,37 +352,37 @@ debug_imc_after:
     cmp x26, #4
     bge debug_imc_complete
     
-    adr x0, msg_column
-    bl print_string
-    mov x0, x26
-    bl print_number
-    adr x0, msg_after_imc_col
-    bl print_string
+    //adr x0, msg_column
+    //bl print_string
+    //mov x0, x26
+    //bl print_number
+    //adr x0, msg_after_imc_col
+    //bl print_string
     
     adr x25, work_state
     lsl x22, x26, #2          // x22 = C * 4
     ldrb w0, [x25, x22]
-    bl print_byte_hex
-    adr x0, space
-    bl print_string
+    //bl print_byte_hex
+    //adr x0, space
+    //bl print_string
     
     add x22, x22, #1
     ldrb w0, [x25, x22]
-    bl print_byte_hex
-    adr x0, space
-    bl print_string
+    //bl print_byte_hex
+    //adr x0, space
+    //bl print_string
     
     add x22, x22, #1
     ldrb w0, [x25, x22]
-    bl print_byte_hex
-    adr x0, space
-    bl print_string
+    //bl print_byte_hex
+    //adr x0, space
+    //bl print_string
     
     add x22, x22, #1
     ldrb w0, [x25, x22]
-    bl print_byte_hex
-    adr x0, msg_close_bracket
-    bl print_string
+    //bl print_byte_hex
+    //adr x0, msg_close_bracket
+    //bl print_string
     
     add x26, x26, #1
     b debug_imc_after
