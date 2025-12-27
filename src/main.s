@@ -4,78 +4,103 @@
 .extern inv_sub_bytes
 .extern inv_mix_columns
 
-.section .data
-    // ========================================
-    // DATOS DE PRUEBA AES-128
-    // Ejemplo: "Thats my Kung Fu" / "Two One Nine Two"
-    // ========================================
-    
-    // Ciphertext: 29C3505F 571420F6 402299B3 1A02D73A
-    test_cipher: .byte 0x29, 0xC3, 0x50, 0x5F
-                 .byte 0x57, 0x14, 0x20, 0xF6
-                 .byte 0x40, 0x22, 0x99, 0xB3
-                 .byte 0x1A, 0x02, 0xD7, 0x3A
-    
-    // Key: "Thats my Kung Fu" = 54686174 73206D79 204B756E 67204675
-    test_key: .byte 0x54, 0x68, 0x61, 0x74
-              .byte 0x73, 0x20, 0x6D, 0x79
-              .byte 0x20, 0x4B, 0x75, 0x6E
-              .byte 0x67, 0x20, 0x46, 0x75
-
-    
+.section .bss
+    input_cipher: .skip 33
+    input_key: .skip 33
+    test_cipher: .skip 16
+    test_key: .skip 16
     expanded_keys: .skip 176
     work_state: .skip 16
+    hex_buf: .skip 4
+    num_buf: .skip 12
 
-    // ========================================
-    // MENSAJES
-    // ========================================
+.section .data
+    msg_input_cipher: .asciz "Ingrese el criptograma (32 caracteres hexadecimales): "
+    msg_input_key: .asciz "Ingrese la clave (32 caracteres hexadecimales): "
     msg_title: .asciz "\n╔═══════════════════════════════════════════════════════╗\n"
     msg_title2: .asciz "║   DESENCRIPTACIÓN AES-128 - MODO DEPURACIÓN           ║\n"
     msg_title3: .asciz "╚═══════════════════════════════════════════════════════╝\n\n"
-    
     msg_separator: .asciz "========================================================\n"
-    msg_cipher_input: .asciz "[ENTRADA] Texto Cifrado:\n  "
-    msg_key_input: .asciz "\n[CLAVE] Clave Original:\n  "
-    msg_expanding: .asciz "\n[EXPANSIÓN] Generando subclaves...\n"
-    
-    msg_expanded_header: .asciz "\n[DEBUG] Claves Expandidas (11 subclaves):\n"
+    msg_cipher_input: .asciz "[ENTRADA] Texto Cifrado:\n"
+    msg_key_input: .asciz "\n[CLAVE] Clave Original:\n"
+    msg_expanding:  .asciz "\n[EXPANSIÓN] Generando subclaves...\n"
+    msg_expanded_header: .asciz "\nClaves Expandidas (11 subclaves):\n"
     msg_round_key: .asciz "  Ronda "
     msg_colon: .asciz ": "
-    
     msg_decrypting: .asciz "\n[DESENCRIPTACIÓN] Iniciando proceso...\n"
     msg_round_init: .asciz "\n╔══ RONDA INICIAL (Ronda 10) ══╗\n"
     msg_round_intermediate: .asciz "\n╔══ RONDA INTERMEDIA "
     msg_round_end_bracket: .asciz " ══╗\n"
     msg_round_final: .asciz "\n╔══ RONDA FINAL (Ronda 0) ══╗\n"
-    
-    msg_before: .asciz "  [ANTES]      "
+    msg_before:  .asciz "  [ANTES]      "
     msg_after_ark: .asciz "  [ARK]       "
     msg_after_isr: .asciz "  [ISR]       "
     msg_after_isb: .asciz "  [ISB]       "
     msg_after_imc: .asciz "  [IMC]       "
-    
     msg_round_key_used: .asciz "  [CLAVE]     "
-
-    
     msg_result: .asciz "\n[RESULTADO FINAL]\n"
     msg_decrypted: .asciz "  Descifrado: "
-    msg_ascii_out: .asciz "  ASCII:      \""
-    msg_quote: .asciz "\"\n"
-
-
-    msg_open_bracket: .asciz "["
-    msg_close_bracket_space: .asciz "] "
-    
+    msg_ascii_out: .asciz "  ASCII:       \""
+    msg_quote:  .asciz "\"\n"
+    msg_error_input: .asciz "Error: Debe ingresar exactamente 32 caracteres hexadecimales.\n"
+    msg_matriz_estado: .asciz "Matriz estado:\n"
     newline: .asciz "\n"
     space: .asciz " "
-    hex_buf: .skip 4
-    num_buf: .skip 12
+    space4: .asciz "    "
 
 .section .text
 .global _start
 
-_start:
-    // Imprimir título
+_start: 
+    // ========================================
+    // LEER CRIPTOGRAMA
+    // ========================================
+    mov x0, #1
+    adr x1, msg_input_cipher
+    mov x2, #54                 // Longitud del mensaje
+    mov x8, #64                 // syscall write
+    svc #0
+
+    mov x0, #0                  // stdin
+    adr x1, input_cipher
+    mov x2, #33                 // 32 hex chars + newline
+    mov x8, #63                 // syscall read
+    svc #0
+    
+    // Convertir entrada hex a bytes
+    adr x0, input_cipher
+    adr x1, test_cipher
+    bl hex_string_to_bytes
+    
+    // Verificar si la conversión fue exitosa
+    cbnz x0, input_error
+
+    // ========================================
+    // LEER CLAVE
+    // ========================================
+    mov x0, #1
+    adr x1, msg_input_key
+    mov x2, #47                 // Longitud del mensaje
+    mov x8, #64                 // syscall write
+    svc #0
+
+    mov x0, #0                  // stdin
+    adr x1, input_key
+    mov x2, #33                 // 32 hex chars + newline
+    mov x8, #63                 // syscall read
+    svc #0
+    
+    // Convertir entrada hex a bytes
+    adr x0, input_key
+    adr x1, test_key
+    bl hex_string_to_bytes
+    
+    // Verificar si la conversión fue exitosa
+    cbnz x0, input_error
+
+    // ========================================
+    // MOSTRAR TÍTULO
+    // ========================================
     adr x0, msg_title
     bl print_string
     adr x0, msg_title2
@@ -90,15 +115,17 @@ _start:
     // ========================================
     adr x0, msg_cipher_input
     bl print_string
+    adr x0, msg_matriz_estado
+    bl print_string
     adr x0, test_cipher
-    mov x1, #16
-    bl print_hex_line
+    bl print_matrix_4x4
     
     adr x0, msg_key_input
     bl print_string
+    adr x0, msg_matriz_estado
+    bl print_string
     adr x0, test_key
-    mov x1, #16
-    bl print_hex_line
+    bl print_matrix_4x4
 
     // ========================================
     // EXPANDIR CLAVE
@@ -133,19 +160,15 @@ print_expanded_keys_loop:
     
     adr x0, msg_colon
     bl print_string
-
-    adr x0, msg_open_bracket        
+    adr x0, newline
     bl print_string
     
     mov x20, #16
     mul x20, x19, x20
     adr x0, expanded_keys
     add x0, x0, x20
-    mov x1, #16
-    bl print_hex_line_no_newline    
+    bl print_hex_matrix
     
-   adr x0, msg_close_bracket_space
-    bl print_string
     adr x0, newline
     bl print_string
     
@@ -167,7 +190,7 @@ copy_cipher_loop:
     add x21, x21, #1
     b copy_cipher_loop
 
-start_decryption:
+start_decryption: 
     adr x0, msg_separator
     bl print_string
     adr x0, msg_decrypting
@@ -181,16 +204,18 @@ start_decryption:
     
     adr x0, msg_before
     bl print_string
+    adr x0, newline
+    bl print_string
     adr x0, work_state
-    mov x1, #16
-    bl print_hex_line
+    bl print_hex_matrix
     
     adr x0, msg_round_key_used
     bl print_string
+    adr x0, newline
+    bl print_string
     adr x0, expanded_keys
     add x0, x0, #160
-    mov x1, #16
-    bl print_hex_line
+    bl print_hex_matrix
     
     adr x0, work_state
     adr x1, expanded_keys
@@ -199,9 +224,10 @@ start_decryption:
     
     adr x0, msg_after_ark
     bl print_string
+    adr x0, newline
+    bl print_string
     adr x0, work_state
-    mov x1, #16
-    bl print_hex_line
+    bl print_hex_matrix
 
     // ========================================
     // RONDAS INTERMEDIAS (9 hasta 1)
@@ -225,41 +251,45 @@ round_loop:
     
     adr x0, msg_before
     bl print_string
+    adr x0, newline
+    bl print_string
     adr x0, work_state
-    mov x1, #16
-    bl print_hex_line
+    bl print_hex_matrix
     
-    // 1. InvShiftRows
+    // InvShiftRows
     adr x0, work_state
     bl inv_shift_rows
     
     adr x0, msg_after_isr
     bl print_string
+    adr x0, newline
+    bl print_string
     adr x0, work_state
-    mov x1, #16
-    bl print_hex_line
+    bl print_hex_matrix
     
-    // 2. InvSubBytes
+    // InvSubBytes
     adr x0, work_state
     bl inv_sub_bytes
     
     adr x0, msg_after_isb
     bl print_string
+    adr x0, newline
+    bl print_string
     adr x0, work_state
-    mov x1, #16
-    bl print_hex_line
+    bl print_hex_matrix
     
-    // 3. AddRoundKey
+    // AddRoundKey
     mov x24, x23
     lsl x24, x24, #4
     
     adr x0, msg_round_key_used
     bl print_string
+    adr x0, newline
+    bl print_string
     adr x1, expanded_keys
     add x1, x1, x24
     mov x0, x1
-    mov x1, #16
-    bl print_hex_line
+    bl print_hex_matrix
     
     adr x0, work_state
     adr x1, expanded_keys
@@ -268,38 +298,17 @@ round_loop:
     
     adr x0, msg_after_ark
     bl print_string
+    adr x0, newline
+    bl print_string
     adr x0, work_state
-    mov x1, #16
-    bl print_hex_line
+    bl print_hex_matrix
     
-    // 4. InvMixColumns con debug mejorado
     stp x19, x20, [sp, #-16]!
     stp x21, x22, [sp, #-16]!
     stp x23, x24, [sp, #-16]!
-    stp x25, x26, [sp, #-16]!
+    stp x25, x26, [sp, #-16]! 
     
-    // Mostrar columnas ANTES (en formato correcto: row-major)
     mov x26, #0
-debug_imc_before:
-    cmp x26, #4
-    bge debug_imc_apply
-    
-    // En column-major: columna C = bytes[C*4, C*4+1, C*4+2, C*4+3]
-    adr x25, work_state
-    lsl x22, x26, #2          // x22 = C * 4
-    ldrb w0, [x25, x22]
-    
-    add x22, x22, #1
-    ldrb w0, [x25, x22]
-    
-    add x22, x22, #1
-    ldrb w0, [x25, x22]
-    
-    add x22, x22, #1
-    ldrb w0, [x25, x22]
-    
-    add x26, x26, #1
-    b debug_imc_before
     
 debug_imc_apply:
     ldp x25, x26, [sp], #16
@@ -312,36 +321,17 @@ debug_imc_apply:
     
     adr x0, msg_after_imc
     bl print_string
+    adr x0, newline
+    bl print_string
     adr x0, work_state
-    mov x1, #16
-    bl print_hex_line
+    bl print_hex_matrix
     
-    // Mostrar columnas DESPUÉS
     stp x19, x20, [sp, #-16]!
-    stp x21, x22, [sp, #-16]!
+    stp x21, x22, [sp, #-16]! 
     stp x23, x24, [sp, #-16]!
     stp x25, x26, [sp, #-16]!
     
     mov x26, #0
-debug_imc_after:
-    cmp x26, #4
-    bge debug_imc_complete
-
-    adr x25, work_state
-    lsl x22, x26, #2          // x22 = C * 4
-    ldrb w0, [x25, x22]
-    
-    add x22, x22, #1
-    ldrb w0, [x25, x22]
-    
-    add x22, x22, #1
-    ldrb w0, [x25, x22]
-    
-    add x22, x22, #1
-    ldrb w0, [x25, x22]
-    
-    add x26, x26, #1
-    b debug_imc_after
     
 debug_imc_complete:
     ldp x25, x26, [sp], #16
@@ -361,33 +351,37 @@ final_round:
     
     adr x0, msg_before
     bl print_string
+    adr x0, newline
+    bl print_string
     adr x0, work_state
-    mov x1, #16
-    bl print_hex_line
+    bl print_hex_matrix
     
     adr x0, work_state
     bl inv_shift_rows
     
     adr x0, msg_after_isr
     bl print_string
+    adr x0, newline
+    bl print_string
     adr x0, work_state
-    mov x1, #16
-    bl print_hex_line
+    bl print_hex_matrix
     
     adr x0, work_state
     bl inv_sub_bytes
     
     adr x0, msg_after_isb
     bl print_string
+    adr x0, newline
+    bl print_string
     adr x0, work_state
-    mov x1, #16
-    bl print_hex_line
+    bl print_hex_matrix
     
     adr x0, msg_round_key_used
     bl print_string
+    adr x0, newline
+    bl print_string
     adr x0, expanded_keys
-    mov x1, #16
-    bl print_hex_line
+    bl print_hex_matrix
     
     adr x0, work_state
     adr x1, expanded_keys
@@ -395,9 +389,10 @@ final_round:
     
     adr x0, msg_after_ark
     bl print_string
+    adr x0, newline
+    bl print_string
     adr x0, work_state
-    mov x1, #16
-    bl print_hex_line
+    bl print_hex_matrix
 
     // ========================================
     // MOSTRAR RESULTADO
@@ -409,9 +404,10 @@ final_round:
     
     adr x0, msg_decrypted
     bl print_string
+    adr x0, newline
+    bl print_string
     adr x0, work_state
-    mov x1, #16
-    bl print_hex_line
+    bl print_hex_matrix
     
     adr x0, msg_ascii_out
     bl print_string
@@ -433,51 +429,182 @@ program_end:
     mov x0, #0
     svc #0
 
-// ============================================================
-// FUNCIONES DE IMPRESIÓN
-// ============================================================
+input_error:
+    adr x0, msg_error_input
+    bl print_string
+    mov x8, #93
+    mov x0, #1
+    svc #0
 
-print_hex_line:
-    stp x29, x30, [sp, #-16]!
+// ============================================================
+// FUNCIÓN:  hex_string_to_bytes
+// Convierte una cadena hexadecimal a bytes
+// Entrada: x0 = dirección de cadena hex (32 chars sin espacios)
+//          x1 = dirección de salida (16 bytes)
+// Salida: x0 = 0 si éxito, 1 si error
+// ============================================================
+hex_string_to_bytes:
+    stp x29, x30, [sp, #-16]! 
     stp x19, x20, [sp, #-16]!
     stp x21, x22, [sp, #-16]!
+    stp x23, x24, [sp, #-16]! 
     
-    mov x19, x0
-    mov x20, x1
-    mov x21, #0
+    mov x19, x0         // Dirección de entrada
+    mov x20, x1         // Dirección de salida
+    mov x21, #0         // Índice de entrada
+    mov x22, #0         // Índice de salida (bytes)
     
-    // Imprimir corchete de apertura
-    adr x0, msg_open_bracket
-    bl print_string
+.Lhex_convert_loop:
+    cmp x22, #16        // ¿Hemos procesado 16 bytes?
+    bge .Lhex_success
     
-.Lhex_line_loop:
-    cmp x21, x20
-    bge .Lhex_line_done
-    
-    ldrb w0, [x19, x21]
-    bl print_byte_hex
-    
-    adr x0, space
-    bl print_string
-    
+    // Leer primer dígito hex
+    ldrb w23, [x19, x21]
     add x21, x21, #1
-    b .Lhex_line_loop
     
-.Lhex_line_done:
-    // Imprimir corchete de cierre
-    adr x0, msg_close_bracket_space
-    bl print_string
+    // Convertir primer dígito
+    mov w0, w23
+    bl hex_char_to_nibble
+    cmp w0, #-1
+    beq .Lhex_error
+    lsl w23, w0, #4     // Mover a nibble alto
     
-    adr x0, newline
-    bl print_string
+    // Leer segundo dígito hex
+    ldrb w24, [x19, x21]
+    add x21, x21, #1
     
+    // Convertir segundo dígito
+    mov w0, w24
+    bl hex_char_to_nibble
+    cmp w0, #-1
+    beq .Lhex_error
+    
+    // Combinar nibbles
+    orr w23, w23, w0
+    
+    // Guardar byte
+    strb w23, [x20, x22]
+    add x22, x22, #1
+    
+    b .Lhex_convert_loop
+    
+.Lhex_success:
+    mov x0, #0
+    b .Lhex_done
+    
+.Lhex_error:
+    mov x0, #1
+    
+.Lhex_done:
+    ldp x23, x24, [sp], #16
     ldp x21, x22, [sp], #16
     ldp x19, x20, [sp], #16
     ldp x29, x30, [sp], #16
     ret
 
+// ============================================================
+// FUNCIÓN: hex_char_to_nibble
+// Convierte un carácter hexadecimal a su valor numérico
+// Entrada: w0 = carácter ASCII
+// Salida: w0 = valor (0-15) o -1 si error
+// ============================================================
+hex_char_to_nibble:
+    // Verificar '0'-'9'
+    cmp w0, #'0'
+    blt .Lnot_digit
+    cmp w0, #'9'
+    bgt .Lcheck_upper
+    sub w0, w0, #'0'
+    ret
+    
+.Lcheck_upper:
+    // Verificar 'A'-'F'
+    cmp w0, #'A'
+    blt .Lcheck_lower
+    cmp w0, #'F'
+    bgt .Lcheck_lower
+    sub w0, w0, #'A'
+    add w0, w0, #10
+    ret
+    
+.Lcheck_lower:
+    // Verificar 'a'-'f'
+    cmp w0, #'a'
+    blt .Lnot_digit
+    cmp w0, #'f'
+    bgt .Lnot_digit
+    sub w0, w0, #'a'
+    add w0, w0, #10
+    ret
+    
+.Lnot_digit:
+    mov w0, #-1
+    ret
+
+// ============================================================
+// FUNCIÓN: print_matrix_4x4
+// Imprime matriz 4x4 con formato de 2 hex chars + espacio
+// ============================================================
+print_matrix_4x4:
+    stp x29, x30, [sp, #-16]! 
+    stp x19, x20, [sp, #-16]!
+    stp x21, x22, [sp, #-16]!
+    
+    mov x19, x0         // Dirección de datos
+    mov x20, #0         // Fila actual
+    
+.Lmat4_row_loop:
+    cmp x20, #4
+    bge .Lmat4_done
+    
+    // Imprimir 4 espacios de indentación
+    adr x0, space4
+    bl print_string
+    
+    mov x21, #0         // Columna actual
+    
+.Lmat4_col_loop:
+    cmp x21, #4
+    bge .Lmat4_row_end
+    
+    // Calcular índice:  fila + (columna * 4)
+    mov x22, #4
+    mul x22, x21, x22
+    add x22, x22, x20
+    
+    // Cargar y mostrar byte
+    ldrb w0, [x19, x22]
+    bl print_byte_hex
+    
+    // Si no es la última columna, imprimir espacio
+    cmp x21, #3
+    beq .Lmat4_no_space
+    adr x0, space
+    bl print_string
+    
+.Lmat4_no_space:
+    add x21, x21, #1
+    b .Lmat4_col_loop
+    
+.Lmat4_row_end:
+    adr x0, newline
+    bl print_string
+    
+    add x20, x20, #1
+    b .Lmat4_row_loop
+    
+.Lmat4_done:
+    ldp x21, x22, [sp], #16
+    ldp x19, x20, [sp], #16
+    ldp x29, x30, [sp], #16
+    ret
+
+// ============================================================
+// FUNCIONES DE IMPRESIÓN ORIGINALES
+// ============================================================
+
 print_ascii:
-    stp x29, x30, [sp, #-16]!
+    stp x29, x30, [sp, #-16]! 
     stp x19, x20, [sp, #-16]!
     
     mov x19, x0
@@ -522,7 +649,7 @@ print_ascii:
 
 print_byte_hex:
     stp x29, x30, [sp, #-16]!
-    stp x19, x20, [sp, #-16]!
+    stp x19, x20, [sp, #-16]! 
     
     mov w19, w0
     
@@ -562,7 +689,7 @@ print_byte_hex:
 print_number:
     stp x29, x30, [sp, #-16]!
     stp x19, x20, [sp, #-16]!
-    stp x21, x22, [sp, #-16]!
+    stp x21, x22, [sp, #-16]! 
     
     adr x19, num_buf
     mov x20, x19
@@ -591,8 +718,8 @@ print_number:
     sub x1, x1, #1
     mov x2, x20
     sub x2, x2, #1
-    mov x20, x1        // Guardar posición del último dígito
-    add x20, x20, #1   // Apuntar después del último dígito
+    mov x20, x1
+    add x20, x20, #1
 .Lreverse_loop:
     add x2, x2, #1
     cmp x2, x1
@@ -623,7 +750,7 @@ print_string:
     mov x19, x0
     mov x20, #0
     
-.Lstrlen:
+.Lstrlen: 
     ldrb w1, [x19, x20]
     cbz w1, .Lprint
     add x20, x20, #1
@@ -640,30 +767,52 @@ print_string:
     ldp x29, x30, [sp], #16
     ret
 
-// Imprime hex en una línea sin newline al final
-print_hex_line_no_newline:
+print_hex_matrix:
     stp x29, x30, [sp, #-16]!
     stp x19, x20, [sp, #-16]!
-    stp x21, x22, [sp, #-16]!
+    stp x21, x22, [sp, #-16]! 
+    stp x23, x24, [sp, #-16]! 
     
     mov x19, x0
-    mov x20, x1
+    mov x20, #0
+    
+.Lmatrix_row_loop:
+    cmp x20, #4
+    bge .Lmatrix_done
+    
+    adr x0, space
+    bl print_string
+    adr x0, space
+    bl print_string
+    
     mov x21, #0
     
-.Lhex_no_nl_loop:
-    cmp x21, x20
-    bge .Lhex_no_nl_done
+.Lmatrix_col_loop:
+    cmp x21, #4
+    bge .Lmatrix_row_end
     
-    ldrb w0, [x19, x21]
+    mov x22, #4
+    mul x22, x21, x22
+    add x22, x22, x20
+    
+    ldrb w0, [x19, x22]
     bl print_byte_hex
     
     adr x0, space
     bl print_string
     
     add x21, x21, #1
-    b .Lhex_no_nl_loop
+    b .Lmatrix_col_loop
     
-.Lhex_no_nl_done:
+.Lmatrix_row_end:
+    adr x0, newline
+    bl print_string
+    
+    add x20, x20, #1
+    b .Lmatrix_row_loop
+    
+.Lmatrix_done:
+    ldp x23, x24, [sp], #16
     ldp x21, x22, [sp], #16
     ldp x19, x20, [sp], #16
     ldp x29, x30, [sp], #16

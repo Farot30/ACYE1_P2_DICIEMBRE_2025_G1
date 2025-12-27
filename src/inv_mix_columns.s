@@ -1,7 +1,3 @@
-// inv_mix_columns.s
-// Función InvMixColumns para AES-128 Desencriptación
-// CORREGIDO: Procesa el estado en formato ROW-MAJOR
-
 .global inv_mix_columns
 
 .section .text
