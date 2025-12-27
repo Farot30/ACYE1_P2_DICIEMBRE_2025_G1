@@ -105,7 +105,6 @@ qemu-aarch64 ./bin_as/main_asm   # en x86_64 con emulacion
 8) **Resultado final**
 
 ![Resultado Final](/documentacion/imgs/ResultadoF.png)
-
 ---
 
 ## 9. Errores comunes y soluciones
