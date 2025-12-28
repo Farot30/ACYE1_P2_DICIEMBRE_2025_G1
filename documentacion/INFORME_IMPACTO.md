@@ -103,7 +103,7 @@ En un centro de datos que procesa cifrado AES:
 #### **4.2.2 Escalabilidad**
 
 - **Menor necesidad de servidores**: 30% menos instancias cloud
-- **Costos cloud reducidos**: $50,000-$150,000/año en infraestructura AWS/Azure
+- **Costos cloud reducidos**: Q1,575,000-Q4,725,000/año en infraestructura AWS/Azure
 - **Menor ancho de banda**: Procesamiento más rápido reduce tiempos de transmisión
 
 ### 4.3 Costos de Desarrollo y Mantenimiento
