@@ -82,29 +82,37 @@ qemu-aarch64 ./bin_as/main_asm   # en x86_64 con emulacion
 
 ## 8. Demostración de uso
 1) **Pantalla de requisitos mínimos para ejecutar el programa**
+   ![Requisitos](/documentacion/imgs/Requisitos.png)
 
-![Requisitos](/documentacion/imgs/Requisitos.png)
 2) **Resultado de `make archivo=main.s` con mensaje de binario generado**
 
 ![Resultado](/documentacion/imgs/Resultado.png)
+
 3) **Inicio del programa: entrada de texto cifrado y clave**
 
 ![Inicio](/documentacion/imgs/Entrada.png)
+
 4) **Ronda incial**
 
 ![Incial](/documentacion/imgs/Inicial.png)
+
 5) **Seccion de subclaves expandidas (11 subclaves)**
 
 ![Subclaves](/documentacion/imgs/Subclaves.png)
+
 6) **Ronda intermedia**
 
 ![Ronda Intermedia](/documentacion/imgs/Intermedia.png)
+
 7) **Ronda final**
 
 ![Ronda Final](/documentacion/imgs/Final.png)
+
 8) **Resultado final**
 
 ![Resultado Final](/documentacion/imgs/ResultadoF.png)
+
+
 ---
 
 ## 9. Errores comunes y soluciones

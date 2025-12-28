@@ -95,10 +95,10 @@ En un centro de datos que procesa cifrado AES:
 
 | Concepto | Sin Optimización | Con Ensamblador | Ahorro Anual |
 |----------|-----------------|--------------|--------------|
-| Energía eléctrica | $300,000 | $210,000 | **$80,000** |
-| Refrigeración | $120,000 | $85,000 | **$35,000** |
-| Mantenimiento hardware | $80,000 | $60,000 | **$20,000** |
-| **TOTAL** | **$500,000** | **$355,000** | **$145,000** |
+| Energía eléctrica | Q2,340,000 | Q1,638,000 | **Q702,000** |
+| Refrigeración | Q936,000 | Q663,000 | **Q273,000** |
+| Mantenimiento hardware | Q624,000 | Q468,000 | **Q156,000** |
+| **TOTAL** | **Q3,900,000** | **Q2,769,000** | **Q1,131,000** |
 
 #### **4.2.2 Escalabilidad**
 
