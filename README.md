@@ -44,4 +44,3 @@ make run
 - Informe Técnico
 - Informe de impacto
 - Manual de usuario
->>>>>>> Beta
